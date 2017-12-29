@@ -22,7 +22,7 @@ mark function).
 
     class BaseMarker:
 
-        def __init__(self, step)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            (self, step):
+        def __init__(self, step):
             self.step = step
 
         def mark():
@@ -58,19 +58,18 @@ Command is a tool class. This tool class combine subcommands.
 .. code-block:: python
 
     class Command:
-    ...
-    def __init__(self, command):
-        self.subcommands = [command]
 
-    def add_param(self, key, value):
-        self.subcommands.append(str(key))
+        def __init__(self, command):
+            self.subcommands = [command]
 
-        if value is not None:
-            slef.subcommands.append(value)
+        def add_param(self, key, value):
+            self.subcommands.append(str(key))
 
-    def make():
-        return " ".join(self.subcommands)
-    ...
+            if value is not None:
+                slef.subcommands.append(value)
+
+        def make():
+            return " ".join(self.subcommands)
 
 The rest_api should should be ``marker.api.v1``. the server's main function
 should be in ``marker.app``.
