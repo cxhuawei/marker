@@ -2,16 +2,15 @@
 Marker Architecture
 ===================
 
-The Command of marker
+The Command of Marker
 =======================
-.. code-block:: shell
-    # start server
-    marker server start --ip ip --port port
-    # start fping
-    marker start fping
-    # add the monitor's targets
-    marker targets add --ip ip1,ip2,ip3
-    marker report get
+* marker server start --ip ip --port port
+* marker start fping
+* marker targets add --ip ip1,ip2,ip3
+* marker report get
+
+The Main Classes of Marker
+==========================
 
 BaseMarker is marker's core class. all kinds of marker should implement
 BaseMarker. The BaseMarker have two executing functions: mark(), mark_fork().
