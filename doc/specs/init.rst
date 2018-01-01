@@ -12,9 +12,9 @@ The Command of Marker
 The Main Classes of Marker
 ==========================
 
-BaseMarker is marker's core class. all kinds of marker should implement
+BaseMarker is marker's core class. All kinds of marker should implement
 BaseMarker. The BaseMarker have two executing functions: mark(), mark_fork().
-The subclass should be override the executin function(the concurrent command
+The subclass should override the executing function(the concurrent command
 should override mark_fork function, the others commands should override
 mark function).
 
@@ -66,12 +66,12 @@ Command is a tool class. This tool class combine subcommands.
             self.subcommands.append(str(key))
 
             if value is not None:
-                slef.subcommands.append(value)
+                self.subcommands.append(value)
 
         def make():
             return " ".join(self.subcommands)
 
-The rest_api should should be ``marker.api.v1``. the server's main function
+The rest_api should be ``marker.api.v1``. the server's main function
 should be in ``marker.app``.
 
 The ``marker.app``'s code looks like:
