@@ -4,10 +4,12 @@ Marker Architecture
 
 The Command of Marker
 =======================
-* marker server start --ip ip --port port
-* marker start fping
-* marker targets add --ip ip1,ip2,ip3
-* marker report get
+* marker target add/delete --target target
+* marker target list --task task
+* marker target start/stop --target target
+* marker task add/delete --task task --target target
+* marker task list --target target
+* marker task start/stop --task task
 
 The Main Classes of Marker
 ==========================
