@@ -1,0 +1,2 @@
+class TaskCommands(object):
+    pass

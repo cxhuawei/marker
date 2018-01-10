@@ -1,0 +1,2 @@
+class TargetCommands(object):
+    pass
