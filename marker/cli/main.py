@@ -5,6 +5,11 @@ from rally.cli.commands import task
 from rally.cli.commands import target
 
 
+categories = {
+    "task": task.TaskCommands,
+    "target": target.TargetCommands
+}
+
 def main():
     return cliutils.run(sys.argv, categories)
 
