@@ -4,6 +4,7 @@ import sys
 from oslo_config import cfg
 from marker.common import logging
 from marker.common import objects
+from marker.task import engine
 from requests.packages import urllib3
 
 
@@ -19,6 +20,59 @@ class APIGroup(object):
 
         self.api = api
 
+    def _generate_task_dict(self, command, target=None, task=None):
+        task_dict = objects.Task.list()
+        if target and task:
+            for k, v in task_dict:
+                if k != target:
+                    active_tag = False
+                    for k1, v1 in v:
+                        if v1 == "running":
+                            active_tag = True
+                            break
+                    if not active_tag:
+                        task_dict.pop(k)
+                else:
+                    active_tag = False
+                    for k1, v1 in v:
+                        if k1 == task:
+                            v1 = command
+                        if v1 == "running":
+                            active_tag = True
+                    if not active_tag:
+                        task_dict.pop(k)
+        elif target:
+            for k, v in task_dict:
+                if k != target:
+                    active_tag = False
+                    for k1, v1 in v:
+                        if v1 == "running":
+                            active_tag = True
+                            break
+                    if not active_tag:
+                        task_dict.pop(k)
+                else:
+                    task_dict[k] = {x: command for x, y in v.iteritems()}
+                    if command == "stop":
+                        task_dict.pop(k)
+        elif task:
+            for k, v in task_dict:
+                active_tag = False
+                for k1, v1 in v:
+                    if k1 == task:
+                        v1 = command
+                    if v1 == "running":
+                        active_tag = True
+                if not active_tag:
+                    task_dict.pop(k)
+
+        else:
+            for k, v in task_dict:
+                task_dict[k] = {x: command for x, y in v.iteritems()}
+                if command == "stop":
+                    task_dict.pop(k)
+        return task_dict
+
 
 class _Target(APIGroup):
 
@@ -29,26 +83,12 @@ class _Target(APIGroup):
         objects.Target.delete(target)
 
     def start(self, target):
-        if not target:
-            target = objects.Target.list()
-        else:
-            target = objects.Target.check(target)
-
-        for each_target in target:
-            task_list = objects.Task.list(each_target)
-            print(task_list)
-            # TODO start each_target_task_list job
+        task_dict = self._generate_task_dict("running", target=target)
+        engine.TaskEngine.run(task_dict)
 
     def stop(self, target):
-        if not target:
-            target = objects.Target.list()
-        else:
-            target = objects.Target.check(target)
-
-        for each_target in target:
-            task_list = objects.Task.list(each_target)
-            print(task_list)
-            # TODO stop each_target_task_list job
+        task_dict = self._generate_task_dict("stop", target=target)
+        engine.TaskEngine.run(task_dict)
 
     def list(self, task):
         objects.Target.list(task)
@@ -62,17 +102,13 @@ class _Task(APIGroup):
     def delete(self, task, target):
         objects.Task.add(task, target)
 
-    def start(self, task):
-        target = objects.Target.list(task)
-        for each_target in target:
-            # TODO start each_target_task job
-            pass
+    def start(self, task, target):
+        task_dict = self._generate_task_dict("start", target=target, task=task)
+        engine.TaskEngine.run(task_dict)
 
-    def stop(self, task):
-        target = objects.Target.list(task)
-        for each_target in target:
-            # TODO stop each_target_task job
-            pass
+    def stop(self, task, target):
+        task_dict = self._generate_task_dict("stop", target=target, task=task)
+        engine.TaskEngine.run(task_dict)
 
     def list(self, target):
         objects.Task.list(target)

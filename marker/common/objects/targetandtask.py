@@ -105,8 +105,6 @@ class Task(object):
         task = []
         if target:
             task = [x for x, y in self.context[target].iteritems()]
+            return task
         else:
-            for k, v in self.context:
-                task.extend([x for x, y in v.iteritems()])
-                task = list(set(task))
-        return task
+            return self.context
