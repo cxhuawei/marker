@@ -6,26 +6,26 @@ class TargetCommands(object):
 
     """
 
-    @cliutils.args("--target", dest="target", type="str")
-    def add(api, target):
+    @cliutils.args("--target", dest="target", type=str)
+    def add(self, api, target):
         if target:
             target = target.split(",")
-        api.target.add(target)
+        api.add(target)
 
-    def delete(api, target):
+    def delete(self, api, target):
         if target:
             target = target.split(",")
-        api.target.delete(target)
+        api.delete(target)
 
-    def start(api, target=None):
+    def start(self, api, target=None):
         if target:
             target = target.split(",")
-        api.target.start(target)
+        api.start(target)
 
-    def stop(api, target=None):
+    def stop(self, api, target=None):
         if target:
             target = target.split(",")
-        api.target.stop(target)
+        api.stop(target)
 
-    def list(api, task=None):
-        api.target.list(task)
+    def list(self, api, task=None):
+        api.list(task)

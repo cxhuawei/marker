@@ -21,7 +21,7 @@ class APIGroup(object):
         self.api = api
 
     def _generate_task_dict(self, command, target=None, task=None):
-        task_dict = objects.Task.list()
+        task_dict = objects.Task().list()
         if target and task:
             for k, v in task_dict:
                 if k != target:
@@ -77,10 +77,10 @@ class APIGroup(object):
 class _Target(APIGroup):
 
     def add(self, target):
-        objects.Target.add(target)
+        objects.Target().add(target)
 
     def delete(self, target):
-        objects.Target.delete(target)
+        objects.Target().delete(target)
 
     def start(self, target):
         task_dict = self._generate_task_dict("running", target=target)
@@ -91,16 +91,16 @@ class _Target(APIGroup):
         engine.TaskEngine.run(task_dict)
 
     def list(self, task):
-        objects.Target.list(task)
+        objects.Target().list(task)
 
 
 class _Task(APIGroup):
 
     def add(self, task, target):
-        objects.Task.add(task, target)
+        objects.Task().add(task, target)
 
     def delete(self, task, target):
-        objects.Task.add(task, target)
+        objects.Task().add(task, target)
 
     def start(self, task, target):
         task_dict = self._generate_task_dict("start", target=target, task=task)
@@ -111,7 +111,7 @@ class _Task(APIGroup):
         engine.TaskEngine.run(task_dict)
 
     def list(self, target):
-        objects.Task.list(target)
+        objects.Task().list(target)
 
 
 class API(object):

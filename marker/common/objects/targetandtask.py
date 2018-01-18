@@ -15,7 +15,7 @@ def _default_context_file():
         abspath = os.path.abspath(os.path.expanduser(path))
         fpath = os.path.join(abspath, CONFIG_FILE_NAME)
         if os.path.isfile(fpath):
-            return [fpath]
+            return fpath
 
 
 def _read_context():

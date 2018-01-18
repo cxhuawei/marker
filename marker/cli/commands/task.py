@@ -3,17 +3,17 @@ class TaskCommands(object):
 
     """
 
-    def add(api, task, target=None):
+    def add(self, api, task, target=None):
         api.task.add(task, target)
 
-    def delete(api, task, target=None):
+    def delete(self, api, task, target=None):
         api.task.delete(task, target)
 
-    def start(api, task):
+    def start(self, api, task):
         api.task.start(task)
 
-    def stop(api, task):
+    def stop(self, api, task):
         api.task.stop(task)
 
-    def list(api, target=None):
+    def list(self, api, target=None):
         api.task.list(target)
