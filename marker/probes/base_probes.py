@@ -5,6 +5,7 @@ class BaseProbes(object):
 
     def __init__(self, target):
         self.target = target
+        self.task = task
         self.data = None
 
     def run(self):

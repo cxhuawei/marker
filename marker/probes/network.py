@@ -3,7 +3,7 @@ import subprocess
 from marker.probes import base_probes
 
 
-class Network(base.BaseProbes):
+class Network(base_probes.BaseProbes):
 
     def __init__(self, target):
         super(Network, self).__init__()

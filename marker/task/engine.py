@@ -3,6 +3,7 @@ import SocketServer
 import socket
 import time
 
+from marker.task import daemon
 from multiprocessing import Process
 from multiprocessing import Pipe
 from threading import Thread
@@ -20,8 +21,9 @@ class TaskEngine(object):
         self._update_task(task_dict)
 
     def _create_server(self):
-        server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
-        server.serve_forever()
+        with daemon.DaemonContext():
+            server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
+            server.serve_forever()
 
     def _update_task(self, task_dict):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -111,4 +113,6 @@ def _run_thread(target, task):
     while True:
         if task not in TARGET_TASK:
             return
+        #TODO by chenxu
+        #get probes and run it
         time.sleep(1)
