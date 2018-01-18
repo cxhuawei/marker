@@ -1,5 +1,4 @@
 import json
-import paramiko
 import SocketServer
 import socket
 import time
@@ -30,7 +29,8 @@ class TaskEngine(object):
             sock.connect(HOST, PORT)
             sock.sendall(json.dumps(task_dict))
             sock.close()
-        except:
+        except Exception as e:
+            print(e)
             self._create_server()
 
 
@@ -108,12 +108,7 @@ def _run_process(conn, target):
 
 
 def _run_thread(target, task):
-    remote_client = paramiko.SSHClient()
-    remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    remote_client.connect(target, port="22", username="root",
-                          password="cnp200@HW")
     while True:
         if task not in TARGET_TASK:
             return
-        remote_client.exec_command(task)
         time.sleep(1)

@@ -3,7 +3,7 @@ import os
 import sys
 
 from marker.common import logging
-
+from marker.common import db
 
 LOG = logging.getLogger(__name__)
 CONFIG_SEARCH_PATHS = [sys.prefix + "/etc/marker", "~/.marker", "/etc/marker"]
@@ -28,6 +28,12 @@ def _write_context(context):
     path = _default_context_file()
     with open(path, "w") as f:
         json.dump("context", f)
+
+
+def upload_data(target, data):
+    for k, v in data:
+        db.check(target)
+        db.update("{0}_{1}".format(target, k), v)
 
 
 class Target(object):
