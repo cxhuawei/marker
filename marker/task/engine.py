@@ -3,6 +3,7 @@ import SocketServer
 import socket
 import time
 
+from marker.probes.base_probes import BaseProbes
 from marker.task import daemon
 from multiprocessing import Process
 from multiprocessing import Pipe
@@ -113,6 +114,7 @@ def _run_thread(target, task):
     while True:
         if task not in TARGET_TASK:
             return
-        #TODO by chenxu
-        #get probes and run it
+        runner_cls = BaseProbes.get(task)
+        runner_obj = runner_cls(target)
+        runner_obj.run()
         time.sleep(1)

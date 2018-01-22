@@ -4,6 +4,7 @@ import sys
 from oslo_config import cfg
 from marker.common import logging
 from marker.common import objects
+from marker.probes.base_probes import BaseProbes
 from marker.task import engine
 from requests.packages import urllib3
 
@@ -13,12 +14,14 @@ LOG = logging.getLogger(__name__)
 
 
 class APIGroup(object):
+
     def __init__(self, api):
         """Initialize API group
 
         """
 
         self.api = api
+        from marker.probes.network import Network
 
     def _generate_task_dict(self, command, target=None, task=None):
         task_dict = objects.Task().list()
@@ -90,8 +93,9 @@ class _Target(APIGroup):
         task_dict = self._generate_task_dict("stop", target=target)
         engine.TaskEngine.run(task_dict)
 
-    def list(self, task):
-        objects.Target().list(task)
+    def list(self, task=None):
+        targets = objects.Target().list(task)
+        print(targets)
 
 
 class _Task(APIGroup):
@@ -100,7 +104,7 @@ class _Task(APIGroup):
         objects.Task().add(task, target)
 
     def delete(self, task, target):
-        objects.Task().add(task, target)
+        objects.Task().delete(task, target)
 
     def start(self, task, target):
         task_dict = self._generate_task_dict("start", target=target, task=task)
@@ -111,7 +115,13 @@ class _Task(APIGroup):
         engine.TaskEngine.run(task_dict)
 
     def list(self, target):
-        objects.Task().list(target)
+        tasks = []
+        if target:
+            tasks = objects.Task().list(target)
+        else:
+            for p in BaseProbes.get_all():
+                tasks.append(p.get_name())
+        print(tasks)
 
 
 class API(object):

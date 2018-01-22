@@ -295,10 +295,10 @@ def run(argv, categories):
     CONF.register_cli_opt(category_opt)
     help_msg = ("TODO")
 
-    #CONF.register_cli_opt(cfg.ListOpt("plugin-paths",
-    #                                  default=os.environ.get(
-    #                                      "RALLY_PLUGIN_PATHS"),
-    #                                  help=help_msg))
+   # CONF.register_cli_opt(cfg.ListOpt("plugin-paths",
+   #                                   default=os.environ.get(
+   #                                       "RALLY_PLUGIN_PATHS"),
+   #                                   help=help_msg))
 
     try:
         rapi = api.API(config_args=argv[1:], skip_db_check=True)
@@ -346,9 +346,9 @@ def run(argv, categories):
         validate_deprecated_args(argv, fn)
 
         # skip db check for db and plugin commands
-        if CONF.category.name not in ("db", "plugin"):
-            rapi.check_db_revision()
-
+        #if CONF.category.name not in ("db", "plugin"):
+        #    rapi.check_db_revision()
+        #import pdb;pdb.set_trace()
         if getattr(fn, "_suppress_warnings", False):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")

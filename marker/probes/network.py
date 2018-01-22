@@ -3,6 +3,7 @@ import subprocess
 from marker.probes import base_probes
 
 
+@base_probes.configure("ping")
 class Network(base_probes.BaseProbes):
 
     def __init__(self, target):
