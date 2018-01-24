@@ -348,7 +348,6 @@ def run(argv, categories):
         # skip db check for db and plugin commands
         #if CONF.category.name not in ("db", "plugin"):
         #    rapi.check_db_revision()
-        #import pdb;pdb.set_trace()
         if getattr(fn, "_suppress_warnings", False):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")

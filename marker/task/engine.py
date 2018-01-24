@@ -1,4 +1,5 @@
 import json
+import os
 import SocketServer
 import socket
 import time
@@ -6,53 +7,59 @@ import time
 from marker.probes.base_probes import BaseProbes
 from marker.task import daemon
 from multiprocessing import Process
-from multiprocessing import Pipe
+from multiprocessing import Queue
+from Queue import Empty
 from threading import Thread
 
 HOST = "localhost"
 PORT = 9999
+WAIT_TIMEOUT = 5
 ACTIVE_TASK = {}
 TARGET_TASK = []
-PIPE_DICT = {}
+QUEUE_DICT = {}
 
 
 class TaskEngine(object):
 
-    def run(self, task_dict):
-        self._update_task(task_dict)
+    @classmethod
+    def run(cls, task_dict):
+        cls._update_task(task_dict)
 
-    def _create_server(self):
-        with daemon.DaemonContext():
-            server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
-            server.serve_forever()
+    @classmethod
+    def _create_server(cls):
+        #with daemon.DaemonContext():
+        server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
+        server.serve_forever()
 
-    def _update_task(self, task_dict):
+    @classmethod
+    def _update_task(cls, task_dict):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            sock.connect(HOST, PORT)
-            sock.sendall(json.dumps(task_dict))
-            sock.close()
+            sock.connect((HOST, PORT))
         except Exception as e:
             print(e)
-            self._create_server()
+            cls._create_server()
+            sock.connect((HOST, PORT))
+        sock.sendall(json.dumps(task_dict))
+        sock.close()
 
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         global ACTIVE_TASK
-
         self.data = self.request.recv(1024).strip()
         task_dict = json.loads(self.data)
         inter_target = [x for x in ACTIVE_TASK if x in task_dict]
         for k in ACTIVE_TASK:
             if k not in inter_target:
                 _stop_process(k)
-        for k, v in task_dict:
+        for k, v in task_dict.iteritems():
             if k not in inter_target:
                 _start_process(k)
                 for k1 in v:
-                    _handle_thread("add", k, k1)
+                    if v[k1] == "running":
+                        _handle_thread("add", k, k1)
         for item in inter_target:
             current_task = ACTIVE_TASK[item]
             dest_task = task_dict[item]
@@ -67,47 +74,59 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
 
 def _start_process(target):
-    global PIPE_DICT
-    parent_conn, child_conn = Pipe()
-    p = Process(target=_run_process, args=(child_conn, target))
+    print("start new process for {0}".format(target))
+    global QUEUE_DICT
+    q = Queue()
+    p = Process(target=_run_process, args=(q, target))
     p.start()
-    p.join()
-    PIPE_DICT[target] = parent_conn
+    QUEUE_DICT[target] = (p, q)
 
 
 def _stop_process(target):
-    global PIPE_DICT
-    parent_conn = PIPE_DICT[target]
-    data = {"exit": True}
-    parent_conn.send(data)
-    parent_conn.close()
-    PIPE_DICT.pop(target)
+    print("stop process for {0}".format(target))
+    global QUEUE_DICT
+    parent_conn = QUEUE_DICT[target][1]
+    process = QUEUE_DICT[target][0]
+    data = {"exit": "1"}
+    parent_conn.put(json.dumps(data))
+    process.join(WAIT_TIMEOUT)
+    QUEUE_DICT.pop(target)
 
 
 def _handle_thread(command, target, task):
-    global PIPE_DICT
-    parent_conn = PIPE_DICT[target]
+    global QUEUE_DICT
+    parent_conn = QUEUE_DICT[target][1]
     data = {command: task}
-    parent_conn.send(data)
+    parent_conn.put(json.dumps(data))
 
 
-def _run_process(conn, target):
+def _run_process(q, target):
     global TARGET_TASK
     while True:
-        data = conn.recv()
-        data = json.loads(data)
+        time.sleep(1)
+        try:
+            data = q.get(timeout=0.3)
+            data = json.loads(data)
+        except Empty:
+            continue
         if data.get("exit"):
-            conn.close()
-            Process.terminate()
+            try:
+                q.get(timeout=0.3)
+            except Empty:
+                pass
+            finally:
+                q.close()
+            os._exit(os.EX_OK)
         elif data.get("add"):
             task = data.get("add")
+            print("start new thread for job {0} of {1}".format(task, target))
+            TARGET_TASK.append(task)
             t = Thread(target=_run_thread, args=(target, task))
             t.start()
-            t.join()
-            TARGET_TASK.append(task)
+            # t.join()
         elif data.get("del"):
+            print("stop thread for job {0} of {1}".format(task, target))
             TARGET_TASK.remove(data.get("delete_task"))
-        time.sleep(1)
 
 
 def _run_thread(target, task):
@@ -117,4 +136,4 @@ def _run_thread(target, task):
         runner_cls = BaseProbes.get(task)
         runner_obj = runner_cls(target)
         runner_obj.run()
-        time.sleep(1)
+        time.sleep(5)

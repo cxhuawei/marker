@@ -7,7 +7,7 @@ from marker.probes import base_probes
 class Network(base_probes.BaseProbes):
 
     def __init__(self, target):
-        super(Network, self).__init__()
+        super(Network, self).__init__(target)
         self.package_loss = None
         self.rrt = None
 

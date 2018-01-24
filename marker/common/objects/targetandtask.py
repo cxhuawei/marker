@@ -112,5 +112,11 @@ class Task(object):
             LOG.debug("{0} not in Target.".format(target))
         _write_context(self.context)
 
-    def list(self, target):
-        return [x for x, y in self.context[target].iteritems()]
+    def list(self, target=None):
+        if not target:
+            return self.context
+        else:
+            return [x for x, y in self.context[target].iteritems()]
+
+    def update(self, data):
+        _write_context(self.context)

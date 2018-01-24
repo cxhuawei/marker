@@ -16,15 +16,15 @@ class TargetCommands(object):
             target = target.split(",")
         api.target.delete(target)
 
-    def start(self, api, target=None):
-        if target:
-            target = target.split(",")
-        api.target.start(target)
+    def start(self, api, targets=None):
+        if targets:
+            targets = targets.split(",")
+        api.target.start(targets)
 
-    def stop(self, api, target=None):
-        if target:
-            target = target.split(",")
-        api.target.stop(target)
+    def stop(self, api, targets=None):
+        if targets:
+            targets = targets.split(",")
+        api.target.stop(targets)
 
     @cliutils.args("--task", dest="task", type=str)
     def list(self, api, task=None):
