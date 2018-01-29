@@ -17,7 +17,6 @@ from __future__ import print_function
 
 import argparse
 import inspect
-import os
 import sys
 import warnings
 
@@ -293,7 +292,7 @@ def run(argv, categories):
                                      handler=parser)
 
     CONF.register_cli_opt(category_opt)
-    help_msg = ("TODO")
+   # help_msg = ("TODO")
 
    # CONF.register_cli_opt(cfg.ListOpt("plugin-paths",
    #                                   default=os.environ.get(

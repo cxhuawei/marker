@@ -33,10 +33,7 @@ def _write_context(context):
 
 def upload_data(target, data):
     for k, v in data.iteritems():
-        if db.db_check(target, k):
-            db.db_update("{0}_{1}".format(target, k), v)
-        else:
-            db.db_create(target, k)
+        db.db_update("{0}_{1}".format(target, k), v)
 
 
 class Target(object):

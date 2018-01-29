@@ -85,8 +85,11 @@ class BaseProbes(meta.MetaMixin):
         """Return probes's name."""
         return cls._meta_get("name")
 
+    def check_db(self):
+        raise Exception("'check_db' should be overrided in subclass")
+
     def run(self):
-        pass
+        raise Exception("'run' should be overrided in subclass")
 
     def upload_data(self):
         targetandtask.upload_data(self.target, self.data)

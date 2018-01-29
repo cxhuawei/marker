@@ -1,6 +1,16 @@
 import subprocess
 
+from marker.common import db
 from marker.probes import base_probes
+from marker.common import logging
+
+
+LOG = logging.getLogger(__name__)
+ITEMS = {"package_loss": {"DS": "DS:loss:GAUGE:10:0:100",
+                          "RRA": "RRA:MAX:0.5:60:3600"},
+         "rrt": {"DS": "DS:rrt:GAUGE:10:0:U",
+                 "RRA": "RRA:AVERAGE:0.5:60:3600"}
+         }
 
 
 @base_probes.configure("ping")
@@ -10,6 +20,12 @@ class Network(base_probes.BaseProbes):
         super(Network, self).__init__(target)
         self.package_loss = None
         self.rrt = None
+
+    def check_db(self, step):
+        for item, value in ITEMS.iteritems():
+            if not db.db_check(self.target, item):
+                db.db_create(self.target, item, step,
+                             value["DS"], value["RRA"])
 
     def run(self):
         command = "ping {0} -c 100 -i 0.2 -w 1".format(self.target)
@@ -23,4 +39,4 @@ class Network(base_probes.BaseProbes):
             self.data = {"package_loss": self.package_loss, "rrt": self.rrt}
         else:
             err = result.stderr.readlines()
-            print(err)
+            LOG.error(err)

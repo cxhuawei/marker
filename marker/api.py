@@ -139,6 +139,15 @@ class _Task(APIGroup):
         print(tasks)
 
 
+class _Service(APIGroup):
+
+    def start(self):
+        engine.ServiceEngine.start()
+
+    def stop(self):
+        engine.ServiceEngine.stop()
+
+
 class API(object):
 
     CONFIG_SEARCH_PATHS = [sys.prefix + "/etc/marker",
@@ -201,6 +210,7 @@ class API(object):
 
         self._target = _Target(self)
         self._task = _Task(self)
+        self._service = _Service(self)
 
     def _default_config_file(self):
         for path in self.CONFIG_SEARCH_PATHS:
@@ -216,6 +226,10 @@ class API(object):
     @property
     def task(self):
         return self._task
+
+    @property
+    def service(self):
+        return self._service
 
     @property
     def version(self):

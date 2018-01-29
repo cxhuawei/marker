@@ -1,21 +1,23 @@
 import os
 import rrdtool
 
+from marker.common import logging
 
-def db_create(name, item, dstype="GAUGE",
-              timeout=600, min=0, max=100, step=300):
-    ret = rrdtool.create("{0}.rrd".format(name),
-                         "--step", step, "--start", "0",
-                         "DS:{0}:{1}:{2}:{3}:{4}".format(
-                             item, dstype, timeout, min, max))
+
+LOG = logging.getLogger(__name__)
+
+
+def db_create(target, item, step, ds, rra):
+    ret = rrdtool.create("{0}_{1}.rrd".format(target, item),
+                         "--step", str(step), "--start", "0", rra, ds)
     if ret:
-        print(rrdtool.error())
+        LOG.error(rrdtool.error())
 
 
 def db_update(name, data):
-    ret = rrdtool.update("{0.rrd}".format(name), "N:{0}".format(data))
+    ret = rrdtool.update("{0}.rrd".format(name), "N:{0}".format(data))
     if ret:
-        print(rrdtool.error())
+        LOG.error(rrdtool.error())
 
 
 def db_check(target, job):
