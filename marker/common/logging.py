@@ -111,15 +111,15 @@ class MarkerContextAdapter(oslogging.KeywordArgumentAdapter):
             logger = getLogger("%s:%s" % (caller[0], caller[1]))
             logger.warning("[%s] %s" % (caller[2], self._exc_msg))
         super(MarkerContextAdapter, self).exception(msg, exc_info=exc_info,
-                                                   *args, **kwargs)
+                                                    *args, **kwargs)
 
 
 def getLogger(name="unknown", version="unknown"):
 
     if name not in oslogging._loggers:
         oslogging._loggers[name] = MarkerContextAdapter(log.getLogger(name),
-                                                       {"project": "marker",
-                                                        "version": version})
+                                                        {"project": "marker",
+                                                         "version": version})
     return oslogging._loggers[name]
 
 
