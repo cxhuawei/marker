@@ -28,7 +28,7 @@ class Network(base_probes.BaseProbes):
                              value["DS"], value["RRA"])
 
     def run(self):
-        command = "ping {0} -c 100 -i 0.2 -w 1".format(self.target)
+        command = "ping {0} -c 100 -i 0.2 -w 100".format(self.target)
         result = subprocess.Popen(command, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE, shell=True)
         if not result.returncode:
