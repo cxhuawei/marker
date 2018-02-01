@@ -36,7 +36,11 @@ class Network(base_probes.BaseProbes):
             self.package_loss = result[-2].split(",")[2].split("%")[0].strip()
             if result[-1] != "\n":
                 self.rrt = result[-1].split("/")[4]
-            self.data = {"package_loss": self.package_loss, "rrt": self.rrt}
+            else:
+                self.rrt = None
         else:
+            self.package_loss = None
+            self.rrt = None
             err = result.stderr.readlines()
             LOG.error(err)
+        self.data = {"package_loss": self.package_loss, "rrt": self.rrt}

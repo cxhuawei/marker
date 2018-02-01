@@ -78,7 +78,7 @@ class Task(object):
                 if task not in v:
                     v[task] = "stop"
                     LOG.info("add Task {0} to Target {1} success.".format(
-                        task, target))
+                        task, k))
         elif target in self.context:
             if task in self.context[target]:
                 LOG.debug(
@@ -97,7 +97,7 @@ class Task(object):
                 if task in v:
                     v.pop(task)
                     LOG.info("remove Task {0} from Target {1} success.".format(
-                        task, target))
+                        task, k))
         elif target in self.context:
             if task in self.context[target]:
                 self.context[target].pop(task)
