@@ -1,0 +1,5 @@
+[default]
+use_syslog = False
+debug = False
+log_file = /var/log/marker/marker.log
+step = 10

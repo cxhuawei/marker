@@ -6,11 +6,12 @@ from marker.common import logging
 
 
 LOG = logging.getLogger(__name__)
-ITEMS = {"package_loss": {"DS": "DS:loss:GAUGE:10:0:100",
-                          "RRA": "RRA:MAX:0.5:24:1200"},
-         "rrt": {"DS": "DS:rrt:GAUGE:10:0:U",
-                 "RRA": "RRA:AVERAGE:0.5:24:1200"}
+ITEMS = {"package_loss": {"DS": "DS:loss:GAUGE:60:0:100",
+                          "RRA": "RRA:MAX:0.5:4:200"},
+         "rrt": {"DS": "DS:rrt:GAUGE:60:0:U",
+                 "RRA": "RRA:AVERAGE:0.5:4:200"}
          }
+RUN_TIME = 20
 
 
 @base_probes.configure("ping")
@@ -24,7 +25,7 @@ class Network(base_probes.BaseProbes):
     def check_db(self, step):
         for item, value in ITEMS.iteritems():
             if not db.db_check(self.target, item):
-                db.db_create(self.target, item, step,
+                db.db_create(self.target, item, step + RUN_TIME,
                              value["DS"], value["RRA"])
 
     def run(self):
