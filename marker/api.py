@@ -1,3 +1,4 @@
+import copy
 import os
 import sys
 
@@ -5,7 +6,8 @@ from oslo_config import cfg
 from marker.common import logging
 from marker.common import objects
 from marker.probes.base_probes import BaseProbes
-from marker.task import engine
+from marker.server.tcp_server import ServiceEngine
+from marker.server import utils
 from requests.packages import urllib3
 
 
@@ -21,92 +23,60 @@ class APIGroup(object):
         """
 
         self.api = api
-        from marker.probes.network import Network
-        from marker.probes.demo import Demo
 
-    def _generate_task_dict(self, command, target=None, task=None):
+    def _update_task_obj(self, action, targets=None, task=None):
         task_obj = objects.Task()
         task_dict = task_obj.list()
-        deactive_target = []
-        if target and task:
-            for k, v in task_dict.iteritems():
-                if k != target:
-                    active_tag = False
-                    for k1, v1 in v.iteritems():
-                        if v1 == "running":
-                            active_tag = True
-                            break
-                    if not active_tag:
-                        deactive_target.append(k)
-                else:
-                    active_tag = False
-                    for k1 in v:
-                        if k1 == task:
-                            v[k1] = command
-                        if v[k1] == "running":
-                            active_tag = True
-                    if not active_tag:
-                        deactive_target.append(k)
-        elif target:
-            for k, v in task_dict.iteritems():
-                if k != target:
-                    active_tag = False
-                    for k1, v1 in v.iteritems():
-                        if v1 == "running":
-                            active_tag = True
-                            break
-                    if not active_tag:
-                        deactive_target.append(k)
-                else:
-                    task_dict[k] = {x: command for x, y in v.iteritems()}
-                    if command == "stop":
-                        deactive_target.append(k)
-        elif task:
-            for k, v in task_dict.iteritems():
-                active_tag = False
-                for k1 in v:
-                    if k1 == task:
-                        v[k1] = command
-                    if v[k1] == "running":
-                        active_tag = True
-                if not active_tag:
-                    deactive_target.append(k)
-
-        else:
-            for k, v in task_dict.iteritems():
-                task_dict[k] = {x: command for x, y in v.iteritems()}
-                if command == "stop":
-                    deactive_target.append(k)
+        if not targets:
+            targets = [k for k in task_dict]
+        for target in targets:
+            if task:
+                task_dict[target][task] = action
+            else:
+                for k in task_dict[target]:
+                    task_dict[target][k] = action
         task_obj.update(task_dict)
-        for each_target in deactive_target:
-            task_dict.pop(each_target)
-        return task_dict
+
+    def _send_command(self, action, targets=None, task=None):
+        task_obj = objects.Task()
+        task_dict = task_obj.list()
+        if not targets and not task:
+            targets = {}
+            for k, v in task_dict.iteritems():
+                targets[k] = [k1 for k1 in v]
+        elif not targets and task:
+            targets = {k: [task] for k,
+                       v in task_dict.iteritems() if task in v}
+        elif targets and not task:
+            targets = {targets: [k for k in task_dict[targets]]}
+        else:
+            targets = {targets: [task]}
+        for target, task in targets.iteritems():
+            utils.send(action, target, data=task)
 
 
 class _Target(APIGroup):
 
-    def add(self, target):
-        objects.Target().add(target)
+    def add(self, targets):
+        targets_dict = copy.deepcopy(targets)
+        for target in targets_dict:
+            if utils.send("connect", target):
+                LOG.error("Add {0} failed.".format(target))
+                targets.remove(target)
+        objects.Target().add(targets)
 
-    def delete(self, target):
-        objects.Target().delete(target)
+    def delete(self, targets):
+        objects.Target().delete(targets)
 
     def start(self, targets):
-        if targets:
-            for target in targets:
-                target = self._generate_task_dict("running", target=target)
-        else:
-            target = self._generate_task_dict("running")
-        engine.TaskEngine.run(target)
+        self._send_command("start", targets=targets)
+        self._update_task_obj("start", targets=targets)
 
     def stop(self, targets):
-        if targets:
-            for target in targets:
-                target = self._generate_task_dict("stop", target=target)
-        else:
-            target = self._generate_task_dict("stop")
-        engine.TaskEngine.run(target)
+        self._send_command("stop", targets=targets)
+        self._update_task_obj("stop", targets=targets)
 
+    @classmethod
     def list(self, task=None):
         targets = objects.Target().list(task)
         print(targets)
@@ -115,21 +85,33 @@ class _Target(APIGroup):
 class _Task(APIGroup):
 
     def add(self, task, target):
-        objects.Task().add(task, target)
+        if target:
+            if utils.send("connect", target):
+                LOG.error("Add {0} to {1} failed.".format(task, target))
+                return
+        else:
+            target = objects.Target().list()
+            target_dict = copy.deepcopy(target)
+            for target in target_dict:
+                if utils.send("connect", target):
+                    LOG.error("Add {0} to {1} failed.".format(task, target))
+                    target.remove(target)
+        if target:
+            objects.Task().add(task, target)
 
     def delete(self, task, target):
         objects.Task().delete(task, target)
 
-    def start(self, task, target=None):
-        task_dict = self._generate_task_dict(
-            "running", target=target, task=task)
-        engine.TaskEngine.run(task_dict)
+    def start(self, task, targets=None):
+        self._send_command("start", task=task, targets=targets)
+        self._update_task_obj("start", task=task, targets=targets)
 
-    def stop(self, task, target=None):
-        task_dict = self._generate_task_dict("stop", target=target, task=task)
-        engine.TaskEngine.run(task_dict)
+    def stop(self, task, targets=None):
+        self._send_command("stop", task=task, targets=targets)
+        self._update_task_obj("stop", task=task, targets=targets)
 
-    def list(self, target):
+    @classmethod
+    def list(self, target=None):
         tasks = []
         if target:
             tasks = objects.Task().list(target)
@@ -142,10 +124,11 @@ class _Task(APIGroup):
 class _Service(APIGroup):
 
     def start(self):
-        engine.ServiceEngine.start()
+        ServiceEngine.start()
 
     def stop(self):
-        engine.ServiceEngine.stop()
+        targets = objects.Target().list()
+        ServiceEngine.stop(targets)
 
 
 class API(object):
@@ -170,6 +153,28 @@ class API(object):
         """
 
         try:
+            from marker.probes.network import Network
+            tasks = []
+            for p in BaseProbes.get_all():
+                tasks.append(p.get_name())
+            for task in tasks:
+                OPTS = [cfg.IntOpt(
+                    "{0}_step".format(task),
+                    default=5,
+                    help="specifies the base interval in seconds"
+                         " with which data will fed into the rrd."
+                )]
+                CONF.register_opts(OPTS)
+            HOST_OPTS = [cfg.StrOpt(
+                "host",
+                default="localhost",
+                help="specifies host of marker service.")]
+            PORT_OPTS = [cfg.IntOpt(
+                "port",
+                default=9999,
+                help="specifies port of marker service.")]
+            CONF.register_opts(HOST_OPTS)
+            CONF.register_opts(PORT_OPTS)
             config_files = ([config_file] if config_file else
                             self._default_config_file())
             CONF(config_args or [],

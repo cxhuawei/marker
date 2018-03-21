@@ -1,5 +1,5 @@
-from marker.common.objects import targetandtask
 from marker.probes import meta
+from marker.server import utils
 
 
 def itersubclasses(cls, seen=None):
@@ -85,11 +85,11 @@ class BaseProbes(meta.MetaMixin):
         """Return probes's name."""
         return cls._meta_get("name")
 
-    def check_db(self):
+    def check_db(self, step):
         raise Exception("'check_db' should be overrided in subclass")
 
     def run(self):
         raise Exception("'run' should be overrided in subclass")
 
-    def upload_data(self):
-        targetandtask.upload_data(self.target, self.data)
+    def upload_data(self, server_ip):
+        utils.send("data", server_ip, data=self.data)
