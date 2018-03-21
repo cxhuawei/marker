@@ -2,4 +2,6 @@
 use_syslog = False
 debug = False
 log_file = /var/log/marker/marker.log
-step = 10
+ping_step = 10
+host = localhost
+port = 9999
