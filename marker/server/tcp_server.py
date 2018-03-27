@@ -1,6 +1,7 @@
 import json
 import os
 import SocketServer
+<<<<<<< HEAD
 
 from marker.common import logging
 from marker.server import daemon

@@ -2,6 +2,7 @@ import json
 import os
 import time
 
+from marker.api import API
 from marker.common import logging
 from marker.common.objects import targetandtask
 from marker.probes.base_probes import BaseProbes
