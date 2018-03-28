@@ -49,13 +49,19 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         target = command.get("target", None)
         source_ip = self.client_address[0]
         if action == "data":
-            TaskEngine.upload_data(source_ip, data[0])
+            TaskEngine.upload_data(source_ip, data)
         elif action == "start":
             TaskEngine.run("start", data, source_ip, target)
         elif action == "stop":
             TaskEngine.run("stop", data, source_ip, target)
         elif action == "comfirm":
-            LOG.info(data)
+            comfirm_type = data.get("type")
+            task = data.get("task")
+            step = data.get("step")
+            if comfirm_type == "start":
+                TaskEngine.check_db(source_ip, task, step)
+            LOG.info("Task {0} {1} on target {2}".format(
+                task, comfirm_type, source_ip))
         elif action == "exit":
             TaskEngine.run("stop", data, source_ip, target)
             LOG.info("marker service stop on {0}".format(target))

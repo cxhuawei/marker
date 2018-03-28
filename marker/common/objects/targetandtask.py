@@ -1,22 +1,23 @@
 import json
 import os
-import sys
 
 from marker.common import logging
 from marker.common import db
+from oslo_config import cfg
 
 
 LOG = logging.getLogger(__name__)
-CONFIG_SEARCH_PATHS = [sys.prefix + "/etc/marker", "~/.marker", "/etc/marker"]
+CONF = cfg.CONF
 CONFIG_FILE_NAME = "marker.json"
 
 
 def _default_context_file():
-    for path in CONFIG_SEARCH_PATHS:
-        abspath = os.path.abspath(os.path.expanduser(path))
-        fpath = os.path.join(abspath, CONFIG_FILE_NAME)
-        if os.path.isfile(fpath):
-            return fpath
+    abspath = os.path.abspath(CONF.get("data_dir"))
+    fpath = os.path.join(abspath, CONFIG_FILE_NAME)
+    if not os.path.isfile(fpath):
+        with open(fpath, "w") as f:
+            json.dump({}, f)
+    return fpath
 
 
 def _read_context():

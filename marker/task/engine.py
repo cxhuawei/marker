@@ -45,18 +45,18 @@ class TaskEngine(object):
             task_list.append(p.get_name())
 
     @classmethod
+    def check_db(cls, target, task_name, step):
+        runner_cls = BaseProbes.get(task_name)
+        runner_obj = runner_cls(target)
+        runner_obj.check_db(step)
+
+    @classmethod
     def upload_data(cls, target, data):
         targetandtask.upload_data(target, data)
 
 
 def _start_process(task_name, server_ip, target):
     LOG.info("start new process for {0}".format(task_name))
-    STEP_OPTS = [cfg.IntOpt(
-        "{0}_step".format(task_name),
-        default=5,
-        help="specifies the base interval in seconds"
-             " with which data will fed into the rrd.")]
-    CONF.register_opts(STEP_OPTS)
     step = CONF.get("{0}_step".format(task_name))
     global QUEUE_DICT
     q = Queue()
@@ -66,7 +66,7 @@ def _start_process(task_name, server_ip, target):
     QUEUE_DICT[task_name] = (p, q)
     utils.send(
         "comfirm", server_ip,
-        data="Task {0} start on {1}.".format(task_name, target))
+        data={"type": "start", "task": task_name, "step": step})
 
 
 def _stop_process(task_name, server_ip, target):
@@ -80,13 +80,12 @@ def _stop_process(task_name, server_ip, target):
     QUEUE_DICT.pop(task_name)
     utils.send(
         "comfirm", server_ip,
-        data="Task {0} stop on {1}.".format(task_name, target))
+        data={"type": "stop", "task": task_name})
 
 
 def _run_process(q, task_name, server_ip, target, step):
     runner_cls = BaseProbes.get(task_name)
-    runner_obj = runner_cls(task_name, target)
-    # runner_obj.check_db(step)
+    runner_obj = runner_cls(target)
     while True:
         runner_obj.run()
         runner_obj.upload_data(server_ip)

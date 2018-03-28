@@ -173,8 +173,13 @@ class API(object):
                 "port",
                 default=9999,
                 help="specifies port of marker service.")]
+            DATA_OPTS = [cfg.StrOpt(
+                "data_dir",
+                default="/opt/marker/",
+                help="dir where paste rrd files and marker.json.")]
             CONF.register_opts(HOST_OPTS)
             CONF.register_opts(PORT_OPTS)
+            CONF.register_opts(DATA_OPTS)
             config_files = ([config_file] if config_file else
                             self._default_config_file())
             CONF(config_args or [],

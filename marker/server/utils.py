@@ -16,5 +16,6 @@ def send(action, target, port=9999, data=None):
             target, port))
         return 1
     sock.sendall(json.dumps({"action": action,
-                             "data": [data], "target": target}))
+                             "data": data, "target": target}))
+    LOG.info({"action": action, "data": data, "target": target})
     sock.close()
