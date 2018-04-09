@@ -88,8 +88,11 @@ class BaseProbes(meta.MetaMixin):
     def check_db(self, step):
         raise Exception("'check_db' should be overrided in subclass")
 
-    def run(self):
+    def run(self, addition):
         raise Exception("'run' should be overrided in subclass")
+
+    def run_as_server(self, addition):
+        raise Exception("'run_as_server' should be overrided in subclass")
 
     def upload_data(self, server_ip):
         utils.send("data", server_ip, data=self.data)

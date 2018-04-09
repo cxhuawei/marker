@@ -45,23 +45,35 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         command = json.loads(self.data)
         action = command.get("action", None)
-        data = command.get("data", None)
+        data = command.get("data", {})
         target = command.get("target", None)
         source_ip = self.client_address[0]
         if action == "data":
             TaskEngine.upload_data(source_ip, data)
         elif action == "start":
-            TaskEngine.run("start", data, source_ip, target)
+            task_list = data.get("context")
+            role = data.get("role", "client")
+            addition = data.get("addition")
+            TaskEngine.run("start", task_list, source_ip,
+                           target, role, addition)
         elif action == "stop":
-            TaskEngine.run("stop", data, source_ip, target)
+            task_list = data.get("context")
+            role = data.get("role", "client")
+            TaskEngine.run("stop", task_list, source_ip, target, role)
         elif action == "comfirm":
             comfirm_type = data.get("type")
             task = data.get("task")
             step = data.get("step")
-            if comfirm_type == "start":
+            role = data.get("role")
+            status = data.get("status")
+            if comfirm_type == "start" and role == "client":
                 TaskEngine.check_db(source_ip, task, step)
-            LOG.info("Task {0} {1} on target {2}".format(
-                task, comfirm_type, source_ip))
+                LOG.info("Task {0} {1} on target {2}".format(
+                    task, comfirm_type, source_ip))
+            if role == "server" and status == "failed":
+                client_ip = data.get("client_ip")
+                utils.send("stop", client_ip,
+                           data={"context": [task], "role": "client"})
         elif action == "exit":
             TaskEngine.run("stop", data, source_ip, target)
             LOG.info("marker service stop on {0}".format(target))
