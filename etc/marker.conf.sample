@@ -2,6 +2,10 @@
 use_syslog = False
 debug = False
 log_file = /var/log/marker/marker.log
-ping_step = 10
+data_dir = /opt/marker
 host = localhost
 port = 9999
+
+[network]
+step = 10
+qperf_port = 10000, 10100

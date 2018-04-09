@@ -5,10 +5,12 @@ import sys
 from oslo_config import cfg
 from marker.common import logging
 from marker.common import objects
+from marker.common import validate
 from marker.probes.base_probes import BaseProbes
 from marker.server.tcp_server import ServiceEngine
 from marker.server import utils
 from requests.packages import urllib3
+from random import randint
 
 
 CONF = cfg.CONF
@@ -38,6 +40,7 @@ class APIGroup(object):
         task_obj.update(task_dict)
 
     def _send_command(self, action, targets=None, task=None):
+        host = CONF.get("host")
         task_obj = objects.Task()
         task_dict = task_obj.list()
         if not targets and not task:
@@ -52,7 +55,20 @@ class APIGroup(object):
         else:
             targets = {targets: [task]}
         for target, task in targets.iteritems():
-            utils.send(action, target, data=task)
+            addition = {"client_ip": target}
+            if "network" in task:
+                qperf_port = randint(int(CONF.network.qperf_port[0]),
+                                     int(CONF.network.qperf_port[1]))
+                while validate.validate_port(qperf_port):
+                    qperf_port = randint(int(CONF.network.qperf_port[0]),
+                                         int(CONF.network.qperf_port[1]))
+                addition["qperf_port"] = qperf_port
+            utils.send(action, host, data={
+                "context": task, "role": "server",
+                "addition": addition})
+            utils.send(action, target, data={
+                "context": task, "role": "client",
+                "addition": addition})
 
 
 class _Target(APIGroup):
@@ -158,13 +174,22 @@ class API(object):
             for p in BaseProbes.get_all():
                 tasks.append(p.get_name())
             for task in tasks:
+                opt_group = cfg.OptGroup(name=task)
                 OPTS = [cfg.IntOpt(
-                    "{0}_step".format(task),
+                    "step",
                     default=5,
                     help="specifies the base interval in seconds"
                          " with which data will fed into the rrd."
                 )]
-                CONF.register_opts(OPTS)
+                CONF.register_group(opt_group)
+                CONF.register_opts(OPTS, opt_group)
+                if task == "network":
+                    OPTS = [cfg.ListOpt(
+                        "qperf_port",
+                        default=[10000, 10100],
+                        help="specifies the port range of qperf."
+                    )]
+                    CONF.register_opts(OPTS, opt_group)
             HOST_OPTS = [cfg.StrOpt(
                 "host",
                 default="localhost",
