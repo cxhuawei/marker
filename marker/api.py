@@ -55,7 +55,7 @@ class APIGroup(object):
         else:
             targets = {targets: [task]}
         for target, task in targets.iteritems():
-            addition = {"client_ip": target}
+            addition = {}
             if "network" in task:
                 qperf_port = randint(int(CONF.network.qperf_port[0]),
                                      int(CONF.network.qperf_port[1]))

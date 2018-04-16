@@ -39,8 +39,9 @@ def configure(name):
 
 class BaseProbes(meta.MetaMixin):
 
-    def __init__(self, target):
-        self.target = target
+    def __init__(self, server_ip, client_ip):
+        self.server_ip = server_ip
+        self.client_ip = client_ip
         self.data = None
 
     @classmethod
@@ -85,7 +86,7 @@ class BaseProbes(meta.MetaMixin):
         """Return probes's name."""
         return cls._meta_get("name")
 
-    def check_db(self, step):
+    def check_db(self, step, ip):
         raise Exception("'check_db' should be overrided in subclass")
 
     def run(self, addition):
@@ -94,5 +95,5 @@ class BaseProbes(meta.MetaMixin):
     def run_as_server(self, addition):
         raise Exception("'run_as_server' should be overrided in subclass")
 
-    def upload_data(self, server_ip):
-        utils.send("data", server_ip, data=self.data)
+    def upload_data(self):
+        utils.send("data", self.server_ip, data=self.data)

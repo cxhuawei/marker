@@ -19,28 +19,31 @@ ITEMS = {"bw": {"DS": "DS:bw:GAUGE:60:0:U",
 @base_probes.configure("network")
 class Network(base_probes.BaseProbes):
 
-    def __init__(self, target):
-        super(Network, self).__init__(target)
+    def __init__(self, server_ip, client_ip):
+        super(Network, self).__init__(server_ip, client_ip)
         self.bw = None
         self.rrt = None
         self.send_pps = None
         self.recv_pps = None
 
-    def check_db(self, step):
+    @classmethod
+    def check_db(self, step, ip):
         for item, value in ITEMS.iteritems():
-            if not db.db_check(self.target, item):
-                db.db_create(self.target, item, step,
+            if not db.db_check(ip, item):
+                db.db_create(ip, item, step,
                              value["DS"], value["RRA"])
 
     def run(self, addition=None):
         if not addition and hasattr(
-            addition, "get") and addition.get("qperf_port"):
+                addition, "get") and addition.get("qperf_port"):
             port = addition.get("qperf_port")
         else:
             return 1
-        command = "qperf {0} -lp {1} tcp_bw tcp_lat".format(self.target, port)
+        command = "qperf {0} -lp {1} tcp_bw tcp_lat".format(self.server_ip,
+                                                            port)
         result = subprocess.Popen(command, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE, shell=True)
+        result.wait()
         if not result.returncode:
             result = result.stdout.readlines()
             if len(result) == 4:
@@ -73,9 +76,10 @@ class Network(base_probes.BaseProbes):
             self.rrt = None
             err = result.stderr.readlines()
             LOG.error(err)
-        command = "qperf {0} -m 1 -lp {1} udp_bw".format(self.target, port)
+        command = "qperf {0} -m 1 -lp {1} udp_bw".format(self.server_ip, port)
         result = subprocess.Popen(command, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE, shell=True)
+        result.wait()
         if not result.returncode:
             result = result.stdout.readlines()
             if len(result) == 3:
@@ -110,13 +114,13 @@ class Network(base_probes.BaseProbes):
             self.recv_pps = None
             err = result.stderr.readlines()
             LOG.error(err)
-            self.data = {"bandwidth": self.wd, "rrt": self.rrt,
-                         "send_pps": self.send_pps, "recv_pps": self.recv_pps}
-            return result
+        self.data = {"bandwidth": self.bw, "rrt": self.rrt,
+                     "send_pps": self.send_pps, "recv_pps": self.recv_pps}
+        return result
 
     def run_as_server(self, addition={}):
         if not addition and hasattr(
-            addition, "get") and addition.get("qperf_port"):
+                addition, "get") and addition.get("qperf_port"):
             port = addition.get("qperf_port")
         else:
             return 1

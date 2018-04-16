@@ -56,8 +56,7 @@ class TaskEngine(object):
     @classmethod
     def check_db(cls, target, task_name, step):
         runner_cls = BaseProbes.get(task_name)
-        runner_obj = runner_cls(target)
-        runner_obj.check_db(step)
+        runner_cls.check_db(step, target)
 
     @classmethod
     def upload_data(cls, target, data):
@@ -91,7 +90,7 @@ def _stop_process(task_name, server_ip, target, role):
 
 def _run_process(q, task_name, server_ip, target, step, role, addition):
     runner_cls = BaseProbes.get(task_name)
-    runner_obj = runner_cls(target)
+    runner_obj = runner_cls(server_ip, target)
     if role == "client":
         utils.send("comfirm", server_ip,
                    data={"type": "start",
@@ -105,7 +104,6 @@ def _run_process(q, task_name, server_ip, target, step, role, addition):
             time.sleep(step)
             _wait_quit(q, Popen)
     else:
-        client_ip = addition.get("client_ip")
         Popen = runner_obj.run_as_server(addition)
         if Popen == 1 or Popen.poll():
             utils.send("comfirm", server_ip,
@@ -113,14 +111,14 @@ def _run_process(q, task_name, server_ip, target, step, role, addition):
                              "task": task_name,
                              "role": "server",
                              "status": "failed",
-                             "client_ip": client_ip})
+                             "client_ip": target})
             os._exit(os.EX_OK)
         utils.send("comfirm", server_ip,
                    data={"type": "start",
                          "task": task_name,
                          "role": "server",
                          "status": "success",
-                         "client_ip": client_ip})
+                         "client_ip": target})
         while True:
             _wait_quit(q, Popen)
 

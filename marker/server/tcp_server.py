@@ -67,7 +67,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             role = data.get("role")
             status = data.get("status")
             if comfirm_type == "start" and role == "client":
-                TaskEngine.check_db(source_ip, task, step)
+                TaskEngine.check_db(target, task, step)
                 LOG.info("Task {0} {1} on target {2}".format(
                     task, comfirm_type, source_ip))
             if role == "server" and status == "failed":
