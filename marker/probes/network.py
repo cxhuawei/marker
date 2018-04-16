@@ -50,26 +50,28 @@ class Network(base_probes.BaseProbes):
             result = result.stdout.readlines()
             if len(result) == 4:
                 try:
-                    bw_value = result[1].split("=")[1].strip().split(" ")[0]
+                    bw_value = float(
+                        result[1].split("=")[1].strip().split(" ")[0])
                     bw_unit = result[1].split("=")[1].strip().split(" ")[1]
                     if bw_unit[0] == "M":
                         pass
                     elif bw_unit[0] == "K":
-                        bw_value = float(bw_value)/1000
+                        bw_value = bw_value/1000
                     elif bw_unit[0] == "G":
                         bw_value = bw_value*1000
                     elif bw_unit[0] == "B":
-                        bw_value = float(bw_value)/1000000
+                        bw_value = bw_value/1000000
                     self.bw = bw_value
 
-                    rrt_value = result[3].split("=")[1].strip().split(" ")[0]
+                    rrt_value = float(
+                        result[3].split("=")[1].strip().split(" ")[0])
                     rrt_unit = result[3].split("=")[1].strip().split(" ")[1]
                     if rrt_unit[0] == "m":
-                        rrt_value = float(rrt_value)/1000
+                        rrt_value = rrt_value/1000
                     elif rrt_unit[0] == "s":
                         pass
                     elif rrt_unit[0] == "u":
-                        rrt_value = float(rrt_value)/1000000
+                        rrt_value = rrt_value/1000000
                     self.rrt = rrt_value
                 except Exception as e:
                     LOG.error(e)
@@ -91,7 +93,8 @@ class Network(base_probes.BaseProbes):
             result = result.stdout.readlines()
             if len(result) == 3:
                 try:
-                    send_value = result[1].split("=")[1].strip().split(" ")[0]
+                    send_value = float(
+                        result[1].split("=")[1].strip().split(" ")[0])
                     send_unit = result[1].split("=")[1].strip().split(" ")[1]
                     if send_unit[0] == "K":
                         pass
@@ -100,10 +103,11 @@ class Network(base_probes.BaseProbes):
                     elif send_unit[0] == "G":
                         send_value = send_value*1000000
                     elif send_unit[0] == "B":
-                        send_value = float(send_value)/1000
+                        send_value = send_value/1000
                     self.send_pps = send_value
 
-                    recv_value = result[2].split("=")[1].strip().split(" ")[0]
+                    recv_value = float(
+                        result[2].split("=")[1].strip().split(" ")[0])
                     recv_unit = result[2].split("=")[1].strip().split(" ")[1]
                     if recv_unit[0] == "K":
                         pass
@@ -112,7 +116,7 @@ class Network(base_probes.BaseProbes):
                     elif recv_unit[0] == "G":
                         recv_value = recv_value*1000000
                     elif recv_unit[0] == "B":
-                        recv_value = float(recv_value)/1000
+                        recv_value = recv_value/1000
                     self.recv_pps = recv_value
                 except Exception as e:
                     LOG.error(e)

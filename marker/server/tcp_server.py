@@ -49,8 +49,9 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         target = command.get("target", None)
         source_ip = self.client_address[0]
         LOG.info("option: receive. \ncommand: {0}. \naction: {1}. \n"
-                 "data: {2}. \ntarget: {3}. \nsource_ip: {4}.").format(
-                     command, action, data, target, source_ip)
+                 "data: {2}. \ntarget: {3}. \nsource_ip: {4}.".format(
+                     str(command), str(action), str(data), str(target),
+                     str(source_ip)))
         if action == "data":
             TaskEngine.upload_data(source_ip, data)
         elif action == "start":

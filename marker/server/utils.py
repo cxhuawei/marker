@@ -18,5 +18,5 @@ def send(action, target, port=9999, data=None):
     sock.sendall(json.dumps({"action": action, "data": data,
                              "target": target}))
     LOG.info("option: send. \naction: {0}. \ndata: {1}. \n"
-             "target: {2}. ").format(action, data, target)
+             "target: {2}. ".format(str(action), str(data), str(target)))
     sock.close()

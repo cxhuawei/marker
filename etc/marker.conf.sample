@@ -1,4 +1,4 @@
-[default]
+[DEFAULT]
 use_syslog = False
 debug = False
 log_file = /var/log/marker/marker.log
