@@ -7,12 +7,14 @@ from subprocess import Popen
 
 
 LOG = logging.getLogger(__name__)
-ITEMS = {"bw": {"DS": "DS:bw:GAUGE:60:0:U",
-                "RRA": "RRA:AVERAGE:0.5:12:1200"},
+ITEMS = {"bandwidth": {"DS": "DS:bw:GAUGE:60:0:U",
+                       "RRA": "RRA:AVERAGE:0.5:12:1200"},
          "rrt": {"DS": "DS:rrt:GAUGE:60:0:U",
                  "RRA": "RRA:AVERAGE:0.5:12:1200"},
-         "pps": {"DS": "DS:pps:GAUGE:60:0:U",
-                 "RRA": "RRA:AVERAGE:0.5:12:1200"}
+         "send_pps": {"DS": "DS:pps:GAUGE:60:0:U",
+                      "RRA": "RRA:AVERAGE:0.5:12:1200"},
+         "recv_pps": {"DS": "DS:pps:GAUGE:60:0:U",
+                      "RRA": "RRA:AVERAGE:0.5:12:1200"}
          }
 
 
@@ -33,11 +35,11 @@ class Network(base_probes.BaseProbes):
                 db.db_create(ip, item, step,
                              value["DS"], value["RRA"])
 
-    def run(self, addition=None):
-        if not addition and hasattr(
-                addition, "get") and addition.get("qperf_port"):
+    def run(self, addition={}):
+        if addition.get("qperf_port"):
             port = addition.get("qperf_port")
         else:
+            LOG.error("qperf port must be configed.")
             return 1
         command = "qperf {0} -lp {1} tcp_bw tcp_lat".format(self.server_ip,
                                                             port)
@@ -47,27 +49,32 @@ class Network(base_probes.BaseProbes):
         if not result.returncode:
             result = result.stdout.readlines()
             if len(result) == 4:
-                bw_value = result[1].split("=")[1].split("")[0]
-                bw_unit = result[1].split("=")[1].split("")[1]
-                if bw_unit[0] == "M":
-                    pass
-                elif bw_unit[0] == "K":
-                    bw_value = float(bw_value)/1000
-                elif bw_unit[0] == "G":
-                    bw_value = bw_value*1000
-                elif bw_unit[0] == "B":
-                    bw_value = float(bw_value)/1000000
-                self.bw = bw_value
+                try:
+                    bw_value = result[1].split("=")[1].strip().split(" ")[0]
+                    bw_unit = result[1].split("=")[1].strip().split(" ")[1]
+                    if bw_unit[0] == "M":
+                        pass
+                    elif bw_unit[0] == "K":
+                        bw_value = float(bw_value)/1000
+                    elif bw_unit[0] == "G":
+                        bw_value = bw_value*1000
+                    elif bw_unit[0] == "B":
+                        bw_value = float(bw_value)/1000000
+                    self.bw = bw_value
 
-                rrt_value = result[3].split("=")[1].split("")[0]
-                rrt_unit = result[3].split("=")[1].split("")[1]
-                if rrt_unit[0] == "m":
-                    rrt_value = float(rrt_value)/1000
-                elif rrt_unit[0] == "s":
-                    pass
-                elif rrt_unit[0] == "u":
-                    rrt_value = float(rrt_value)/1000000
-                self.rrt = rrt_value
+                    rrt_value = result[3].split("=")[1].strip().split(" ")[0]
+                    rrt_unit = result[3].split("=")[1].strip().split(" ")[1]
+                    if rrt_unit[0] == "m":
+                        rrt_value = float(rrt_value)/1000
+                    elif rrt_unit[0] == "s":
+                        pass
+                    elif rrt_unit[0] == "u":
+                        rrt_value = float(rrt_value)/1000000
+                    self.rrt = rrt_value
+                except Exception as e:
+                    LOG.error(e)
+                    self.bw = None
+                    self.rrt = None
             else:
                 self.bw = None
                 self.rrt = None
@@ -83,29 +90,34 @@ class Network(base_probes.BaseProbes):
         if not result.returncode:
             result = result.stdout.readlines()
             if len(result) == 3:
-                send_value = result[1].split("=")[1].split("")[0]
-                send_unit = result[1].split("=")[1].split("")[1]
-                if send_unit[0] == "K":
-                    pass
-                elif send_unit[0] == "M":
-                    send_value = send_value*1000
-                elif send_unit[0] == "G":
-                    send_value = send_value*1000000
-                elif send_unit[0] == "B":
-                    send_value = float(send_value)/1000
-                self.send_pps = send_value
+                try:
+                    send_value = result[1].split("=")[1].strip().split(" ")[0]
+                    send_unit = result[1].split("=")[1].strip().split(" ")[1]
+                    if send_unit[0] == "K":
+                        pass
+                    elif send_unit[0] == "M":
+                        send_value = send_value*1000
+                    elif send_unit[0] == "G":
+                        send_value = send_value*1000000
+                    elif send_unit[0] == "B":
+                        send_value = float(send_value)/1000
+                    self.send_pps = send_value
 
-                recv_value = result[2].split("=")[1].split("")[0]
-                recv_unit = result[2].split("=")[1].split("")[1]
-                if recv_unit[0] == "K":
-                    pass
-                elif recv_unit[0] == "M":
-                    recv_value = recv_value*1000
-                elif recv_unit[0] == "G":
-                    recv_value = recv_value*1000000
-                elif recv_unit[0] == "B":
-                    recv_value = float(recv_value)/1000
-                self.recv_pps = recv_value
+                    recv_value = result[2].split("=")[1].strip().split(" ")[0]
+                    recv_unit = result[2].split("=")[1].strip().split(" ")[1]
+                    if recv_unit[0] == "K":
+                        pass
+                    elif recv_unit[0] == "M":
+                        recv_value = recv_value*1000
+                    elif recv_unit[0] == "G":
+                        recv_value = recv_value*1000000
+                    elif recv_unit[0] == "B":
+                        recv_value = float(recv_value)/1000
+                    self.recv_pps = recv_value
+                except Exception as e:
+                    LOG.error(e)
+                    self.send_pps = None
+                    self.recv_pps = None
             else:
                 self.send_pps = None
                 self.recv_pps = None
@@ -119,10 +131,10 @@ class Network(base_probes.BaseProbes):
         return result
 
     def run_as_server(self, addition={}):
-        if not addition and hasattr(
-                addition, "get") and addition.get("qperf_port"):
+        if addition.get("qperf_port"):
             port = addition.get("qperf_port")
         else:
+            LOG.error("qperf port must be configed.")
             return 1
         command = "qperf -lp {0}".format(port)
         t = Popen(command, shell=True)

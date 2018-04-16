@@ -11,7 +11,7 @@ from multiprocessing import Queue
 from oslo_config import cfg
 from Queue import Empty
 
-WAIT_TIMEOUT = 5
+WAIT_TIMEOUT = 20
 ACTIVE_TASK_CLIENT = []
 ACTIVE_TASK_SERVER = []
 QUEUE_DICT = {}
@@ -100,7 +100,9 @@ def _run_process(q, task_name, server_ip, target, step, role, addition):
                          "status": "success"})
         while True:
             Popen = runner_obj.run(addition)
-            runner_obj.upload_data(server_ip)
+            if Popen == 1:
+                continue
+            runner_obj.upload_data()
             time.sleep(step)
             _wait_quit(q, Popen)
     else:
@@ -111,14 +113,14 @@ def _run_process(q, task_name, server_ip, target, step, role, addition):
                              "task": task_name,
                              "role": "server",
                              "status": "failed",
-                             "client_ip": target})
+                             "client_ip": addition.get("client_ip")})
             os._exit(os.EX_OK)
         utils.send("comfirm", server_ip,
                    data={"type": "start",
                          "task": task_name,
                          "role": "server",
                          "status": "success",
-                         "client_ip": target})
+                         "client_ip": addition.get("client_ip")})
         while True:
             _wait_quit(q, Popen)
 
@@ -137,5 +139,8 @@ def _wait_quit(q, Popen):
             pass
         finally:
             q.close()
-        Popen.terminate()
+        try:
+            Popen.terminate()
+        except Exception as e:
+            LOG.info(e)
         os._exit(os.EX_OK)

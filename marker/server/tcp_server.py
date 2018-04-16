@@ -48,6 +48,9 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         data = command.get("data", {})
         target = command.get("target", None)
         source_ip = self.client_address[0]
+        LOG.info("option: receive. \ncommand: {0}. \naction: {1}. \n"
+                 "data: {2}. \ntarget: {3}. \nsource_ip: {4}.").format(
+                     command, action, data, target, source_ip)
         if action == "data":
             TaskEngine.upload_data(source_ip, data)
         elif action == "start":
@@ -67,7 +70,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             role = data.get("role")
             status = data.get("status")
             if comfirm_type == "start" and role == "client":
-                TaskEngine.check_db(target, task, step)
+                TaskEngine.check_db(source_ip, task, step)
                 LOG.info("Task {0} {1} on target {2}".format(
                     task, comfirm_type, source_ip))
             if role == "server" and status == "failed":

@@ -63,6 +63,7 @@ class APIGroup(object):
                     qperf_port = randint(int(CONF.network.qperf_port[0]),
                                          int(CONF.network.qperf_port[1]))
                 addition["qperf_port"] = qperf_port
+            addition["client_ip"] = target
             utils.send(action, host, data={
                 "context": task, "role": "server",
                 "addition": addition})
