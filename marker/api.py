@@ -105,16 +105,16 @@ class _Task(APIGroup):
         if target:
             if utils.send("connect", target):
                 LOG.error("Add {0} to {1} failed.".format(task, target))
-                return
+                return 1
+            else:
+                objects.Task().add(task, target)
         else:
-            target = objects.Target().list()
-            target_dict = copy.deepcopy(target)
-            for target in target_dict:
+            targets = objects.Target().list()
+            for target in targets:
                 if utils.send("connect", target):
                     LOG.error("Add {0} to {1} failed.".format(task, target))
-                    target.remove(target)
-        if target:
-            objects.Task().add(task, target)
+                else:
+                    objects.Task().add(task, target)
 
     def delete(self, task, target):
         objects.Task().delete(task, target)
