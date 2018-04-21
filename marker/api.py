@@ -139,9 +139,12 @@ class _Task(APIGroup):
 
 
 class _Service(APIGroup):
+    def __init__(self, api, config_files):
+        super(_Service, self).__init__(api)
+        self.config_files = config_files
 
-    def start(self):
-        ServiceEngine.start()
+    def start(self, ip):
+        ServiceEngine.start(ip, self.config_files)
 
     def stop(self):
         targets = objects.Target().list()
@@ -246,7 +249,7 @@ class API(object):
 
         self._target = _Target(self)
         self._task = _Task(self)
-        self._service = _Service(self)
+        self._service = _Service(self, config_files)
 
     def _default_config_file(self):
         for path in self.CONFIG_SEARCH_PATHS:

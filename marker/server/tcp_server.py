@@ -1,3 +1,4 @@
+import ConfigParser
 import json
 import os
 import SocketServer
@@ -16,9 +17,22 @@ LOG = logging.getLogger(__name__)
 class ServiceEngine(object):
 
     @classmethod
-    def start(cls):
-        HOST = CONF.get("host")
-        PORT = CONF.get("port")
+    def start(cls, ip, config_files):
+        if ip and ":" in ip:
+            HOST = ip.split(":")[0]
+            PORT = int(ip.split(":")[1])
+        elif ip:
+            HOST = ip
+            PORT = CONF.get("port")
+        else:
+            HOST = CONF.get("host")
+            PORT = CONF.get("port")
+        conf = ConfigParser.ConfigParser()
+        conf.read(config_files[0])
+        conf.set("DEFAULT", "host", HOST)
+        conf.set("DEFAULT", "port", PORT)
+        with open(config_files[0], "w") as f:
+            conf.write(f)
         LOG.info("marker start service on {0}:{1}".format(HOST, PORT))
         try:
             server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
@@ -33,9 +47,10 @@ class ServiceEngine(object):
     @classmethod
     def stop(cls, targets):
         HOST = CONF.get("host")
+        PORT = CONF.get("port")
         for target in targets:
             utils.send("exit", target)
-        utils.send("exit", HOST)
+        utils.send("exit", HOST, port=PORT)
 
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):

@@ -1,0 +1,39 @@
+CHANGES
+=======
+
+* fix bug of adding task
+* fix bugs of get qperf data
+* fix some bugs of communication
+* add server\_ip when initing probe network
+* update network monitor items of vm
+* update network monitor items of vm
+* complete the data transmission
+* delete useless lib
+* Change the run\_mode of marker
+* Change the run\_mode of marker
+* change step time of ping
+* when ping catching an error, set data to 'None'
+* add requirements.txt and change ping timeout
+* change rra interval to 2m
+* complete developping of daemon process and db
+* complete developping of daemon process and db
+* complete debug of task engine
+* fix some bugs in debugging
+* Fix some bug of debugging
+* add third-part daemon module
+* complete network probes and db module
+* complete the task engine
+* Complete cli commands and api.py
+* change commands of marker
+* add main dir of marker
+* add some basic files
+* init
+* update init
+* update init architecture
+* adjust init.rst
+* adjust init.rst
+* Update README.md
+* Update README.md
+* Update README.md
+* Create README.md
+* Initial commit
