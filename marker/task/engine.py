@@ -12,8 +12,7 @@ from oslo_config import cfg
 from Queue import Empty
 
 WAIT_TIMEOUT = 20
-ACTIVE_TASK_CLIENT = []
-ACTIVE_TASK_SERVER = []
+ACTIVE_TASK = []
 QUEUE_DICT = {}
 
 CONF = cfg.CONF
@@ -25,26 +24,32 @@ class TaskEngine(object):
     @classmethod
     def run(cls, action, task_list, server_ip, target,
             role="client", addition={}):
-        global ACTIVE_TASK_CLIENT
-        global ACTIVE_TASK_SERVER
-        if role == "client":
-            ACTIVE_TASK = ACTIVE_TASK_CLIENT
-        else:
-            ACTIVE_TASK = ACTIVE_TASK_SERVER
+        global ACTIVE_TASK
         if action == "start":
             if not task_list:
                 task_list = cls._get_local_task()
             for task in task_list:
-                if task not in ACTIVE_TASK:
+                role = "{0}_{1}".format(role, addition.get("client_ip"))
+                task_name = "{0}-{1}".format(role, task)
+                if task_name not in ACTIVE_TASK:
                     _start_process(task, server_ip, target, role, addition)
-                    ACTIVE_TASK.append(task)
+                    ACTIVE_TASK.append(task_name)
         elif action == "stop":
-            if not task_list:
-                task_list = cls._get_local_task()
-            for task in task_list:
-                if task in ACTIVE_TASK:
+            if addition:
+                if not task_list:
+                    task_list = cls._get_local_task()
+                for task in task_list:
+                    role = "{0}_{1}".format(role, addition.get("client_ip"))
+                    task_name = "{0}-{1}".format(role, task)
+                    if task_name in ACTIVE_TASK:
+                        _stop_process(task, server_ip, target, role)
+                        ACTIVE_TASK.remove(task_name)
+            else:
+                for task_name in ACTIVE_TASK:
+                    task = task_name.split("-", 1)[1]
+                    role = task_name.split("-", 1)[0]
                     _stop_process(task, server_ip, target, role)
-                    ACTIVE_TASK.remove(task)
+                    ACTIVE_TASK.remove(task_name)
 
     @classmethod
     def _get_local_task(cls):

@@ -69,16 +69,12 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
                      str(source_ip)))
         if action == "data":
             TaskEngine.upload_data(source_ip, data)
-        elif action == "start":
+        elif action in ["start", "stop"]:
             task_list = data.get("context")
             role = data.get("role", "client")
             addition = data.get("addition")
-            TaskEngine.run("start", task_list, source_ip,
+            TaskEngine.run(action, task_list, source_ip,
                            target, role=role, addition=addition)
-        elif action == "stop":
-            task_list = data.get("context")
-            role = data.get("role", "client")
-            TaskEngine.run("stop", task_list, source_ip, target, role=role)
         elif action == "comfirm":
             comfirm_type = data.get("type")
             task = data.get("task")
