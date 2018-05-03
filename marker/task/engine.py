@@ -96,7 +96,7 @@ def _stop_process(task_name, server_ip, target, role):
 def _run_process(q, task_name, server_ip, target, step, role, addition):
     runner_cls = BaseProbes.get(task_name)
     runner_obj = runner_cls(server_ip, target)
-    if role == "client":
+    if "client" in role:
         utils.send("comfirm", server_ip,
                    data={"type": "start",
                          "task": task_name,
