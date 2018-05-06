@@ -7,8 +7,8 @@ class ServiceCommands(object):
 
     """
 
-    @cliutils.args("--ip", dest="ip", type=str)
-    def start(self, api, ip):
+    @cliutils.args("--ip", dest="ip", type=str, required=False)
+    def start(self, api, ip=None):
         api.service.start(ip)
 
     def stop(self, api):
